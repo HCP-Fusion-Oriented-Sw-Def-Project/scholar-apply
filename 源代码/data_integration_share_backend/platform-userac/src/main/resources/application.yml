@@ -1,0 +1,51 @@
+# 线上环境配置
+# 数据源配置，请修改为你项目的实际配置
+spring:
+  profiles:
+    active: test
+  application:
+    name: standard-information-platform
+  servlet:
+    multipart:
+      max-request-size: 750MB # 上传文件总的最大值
+      max-file-size: 750MB # 单个文件的最大值
+
+logging:
+  config: classpath:logback-spring.xml
+#  path: /Users/log/standard-information-platform/${spring.application.name}  # ${spring.application.name}
+  path: C:\Dev\log\standard-information-platform\${spring.application.name}
+  file: ${spring.application.name}
+  level:
+    org.springframework: INFO
+#    instance-id: ${spring.application.name}:${spring.cloud.client.ipAddress}:${server.port}
+security:
+  oauth2:
+    client:
+      accessTokenUri: /oauth/token
+    resource:
+      token-info-uri: /oauth/check_token
+      #resource-ids: ${spring.application.name}
+
+auth:
+  permitall:
+    -
+      pattern: /login
+    -
+      pattern: /logout
+    -
+      pattern: /v2/api-docs
+    -
+      pattern: /swagger-resources
+    -
+      pattern: /swagger-ui.html
+    -
+      pattern: /doc.html
+    -
+      pattern: /codeController/getCode
+    -
+      pattern: /standard/webPage
+
+
+server:
+  servlet:
+    context-path: /standard-information-platform

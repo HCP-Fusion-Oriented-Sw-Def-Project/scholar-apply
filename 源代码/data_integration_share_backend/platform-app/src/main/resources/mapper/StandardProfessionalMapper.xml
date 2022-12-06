@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.gbdpuserac.mapper.StandardProfessionalMapper">
+
+    <resultMap type="com.example.gbdpuserac.model.StandardProfessional" id="BaseResultMap">
+                    <result property="id" column="id" jdbcType="VARCHAR"/>
+                    <result property="name" column="name" jdbcType="VARCHAR"/>
+                    <result property="officeId" column="office_id" jdbcType="VARCHAR"/>
+                    <result property="major" column="major" jdbcType="VARCHAR"/>
+                    <result property="contact" column="contact" jdbcType="VARCHAR"/>
+                    <result property="profile" column="profile" jdbcType="VARCHAR"/>
+                    <result property="uid" column="uid" jdbcType="VARCHAR"/>
+                    <result property="createBy" column="create_by" jdbcType="VARCHAR"/>
+                    <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+                    <result property="updateBy" column="update_by" jdbcType="VARCHAR"/>
+                    <result property="updateDate" column="update_date" jdbcType="TIMESTAMP"/>
+                    <result property="remarks" column="remarks" jdbcType="VARCHAR"/>
+                    <result property="delFlag" column="del_flag" jdbcType="VARCHAR"/>
+            </resultMap>
+
+    <sql id="Base_Column_Joins">
+    </sql>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+                t.name,
+            t.office_id,
+            t.major,
+            t.contact,
+            t.profile,
+            t.uid,
+            t.create_by,
+            t.create_date,
+            t.update_by,
+            t.update_date,
+            t.remarks,
+            t.del_flag,
+t.id
+    </sql>
+
+    <select id="listPage" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from standard_professional t
+        <include refid="Base_Column_Joins"/>
+        <where>
+            t.del_flag = '0'
+            <!-- 这里写查询筛选条件，下面是举例写法 -->
+            <if test="id != null and id != ''">
+                AND t.id = #{id}
+            </if>
+            <if test="remark != null and remark != ''">
+                AND t.remark like CONCAT('%', #{remark}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="get" resultMap="BaseResultMap" >
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM standard_professional t
+        <include refid="Base_Column_Joins"/>
+        WHERE t.del_flag = '0'
+        <if test="id != null and id != ''">
+            AND t.id = #{id}
+        </if>
+    </select>
+
+    <!--逻辑删除-->
+    <update id="deleteByLogic">
+        UPDATE standard_professional SET
+        del_flag = '1'
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteManyByLogic">
+        UPDATE standard_professional SET
+        del_flag = '1'
+        WHERE id IN
+        <foreach item="ids" collection="array" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+    </update>
+</mapper>

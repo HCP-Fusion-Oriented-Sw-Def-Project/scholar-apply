@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.gbdpuserac.mapper.RequestEventDeptMapper">
+
+    <resultMap type="com.example.gbdpuserac.entity.RequestEventDept" id="BaseResultMap">
+                    <result property="id" column="id" jdbcType="VARCHAR"/>
+                    <result property="eventId" column="event_id" jdbcType="VARCHAR"/>
+                    <result property="deptId" column="dept_id" jdbcType="VARCHAR"/>
+                    <result property="createBy" column="create_by" jdbcType="VARCHAR"/>
+                    <result property="updateBy" column="update_by" jdbcType="VARCHAR"/>
+                    <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+                    <result property="updateDate" column="update_date" jdbcType="TIMESTAMP"/>
+                    <result property="delFlag" column="del_flag" jdbcType="VARCHAR"/>
+                    <result property="remarks" column="remarks" jdbcType="VARCHAR"/>
+            </resultMap>
+
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+
+            t.event_id AS event_id,
+            t.dept_id AS dept_id,
+            t.create_by AS create_by,
+            t.update_by AS update_by,
+            t.create_date AS create_date,
+            t.update_date AS update_date,
+            t.del_flag AS del_flag,
+            t.remarks AS remarks,
+            id
+    </sql>
+
+    <sql id="Base_Column_Joins">
+    </sql>
+
+    <!--逻辑删除-->
+    <update id="deleteByLogic">
+        UPDATE request_event_dept SET
+        del_flag = '1'
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteManyByLogic">
+        UPDATE request_event_dept SET
+        del_flag = '1'
+        WHERE id IN (#{ids})
+    </update>
+
+    <select id="listPage" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from request_event_dept t
+        <include refid="Base_Column_Joins"/>
+        <where>
+            t.del_flag = '0'
+            <!-- 这里写查询筛选条件，下面是举例写法 -->
+            <if test="id != null and id != ''">
+                AND t.id = #{id}
+            </if>
+            <if test="remarks != null and remarks != ''">
+                AND t.remarks like CONCAT('%', #{remarks}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="get" resultMap="BaseResultMap" >
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM request_event_dept t
+        <include refid="Base_Column_Joins"/>
+        WHERE t.del_flag = '0'
+        <if test="id != null and id != ''">
+            AND t.id = #{id}
+        </if>
+    </select>
+</mapper>

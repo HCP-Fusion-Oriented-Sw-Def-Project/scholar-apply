@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.gbdpuserac.mapper.UacOfficeMapper">
+ 
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.example.gbdpuserac.model.UacOffice">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+            <result column="parent_id" property="parentId" jdbcType="VARCHAR"/>
+            <result column="parent_ids" property="parentIds" jdbcType="VARCHAR"/>
+            <result column="name" property="name" jdbcType="VARCHAR"/>
+            <result column="type" property="type" jdbcType="CHAR"/>
+            <result column="grade" property="grade" jdbcType="CHAR"/>
+            <result column="sort" property="sort" jdbcType="INTEGER"/>
+            <result column="address" property="address" jdbcType="VARCHAR"/>
+            <result column="zip_code" property="zipCode" jdbcType="VARCHAR"/>
+            <result column="phone" property="phone" jdbcType="VARCHAR"/>
+            <result column="email" property="email" jdbcType="VARCHAR"/>
+            <result column="fax" property="fax" jdbcType="VARCHAR"/>
+            <result column="use_able" property="useAble" jdbcType="VARCHAR"/>
+            <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
+            <result column="create_date" property="createDate" jdbcType="TIMESTAMP"/>
+            <result column="update_by" property="updateBy" jdbcType="VARCHAR"/>
+            <result column="update_date" property="updateDate" jdbcType="TIMESTAMP"/>
+            <result column="remarks" property="remarks" jdbcType="VARCHAR"/>
+            <result column="del_flag" property="delFlag" jdbcType="CHAR"/>
+            <result column="primary_person_name" property="primaryPerson.name" />
+            <result column="deputy_person_name" property="deputyPerson.name" />
+            <result column="primary_person_id" property="primaryPerson.id" jdbcType="VARCHAR"/>
+            <result column="deputy_person_id" property="deputyPerson.id" jdbcType="VARCHAR"/>
+            <result column="parent_office_name" property="parent.name" jdbcType="VARCHAR"/>
+            <result column="parent_office" property="parent.id" jdbcType="VARCHAR"/>
+    </resultMap>
+ 
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+                t.id,
+                t.parent_id AS parent_id,
+                t.parent_ids AS parent_ids,
+                t.name AS name,
+                t.type AS type,
+                t.grade AS grade,
+                t.sort AS sort,
+                t.address AS address,
+                t.zip_code AS zip_code,
+                t.phone AS phone,
+                t.email AS email,
+                t.fax AS fax,
+                t.use_able AS use_able,
+                t.primary_person_id AS primary_person_id,
+                t.deputy_person_id AS deputy_person_id,
+                t.create_by AS create_by,
+                t.create_date AS create_date,
+                t.update_by AS update_by,
+                t.update_date AS update_date,
+                t.remarks AS remarks,
+                t.del_flag AS del_flag,
+		        pp.name AS primary_person_name,
+		        dp.name AS deputy_person_name,
+		        uo.name AS parent_office_name,
+		        uo.id AS parent_office
+    </sql>
+    <sql id="Base_Column_Joins">
+        LEFT JOIN uac_user pp ON pp.id = t.primary_person_id
+		LEFT JOIN uac_user dp ON dp.id = t.deputy_person_id
+		LEFT JOIN uac_office uo ON uo.id = t.parent_id
+		LEFT JOIN uac_user uu ON uu.id = t.create_by
+    </sql>
+    <select id="listPage" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from uac_office t
+        <include refid="Base_Column_Joins"/>
+        <where>
+            t.del_flag = '0'
+            <if test="parentId != null" >
+                AND t.parent_id = #{parentId,jdbcType=VARCHAR}
+            </if>
+            <if test="name != null" >
+                AND t.name like CONCAT('%', #{name,jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="type != null" >
+                AND t.type = #{type,jdbcType=CHAR}
+            </if>
+            <if test="grade != null" >
+                AND t.grade = #{grade,jdbcType=CHAR}
+            </if>
+            <if test="useAble != null" >
+                AND t.use_able = #{useAble,jdbcType=VARCHAR}
+            </if>
+            <if test="primaryPerson != null" >
+                AND t.primary_person_id = #{primaryPerson.id,jdbcType=VARCHAR}
+            </if>
+            <if test="deputyPerson != null" >
+                AND t.deputy_person_id = #{deputyPerson.id,jdbcType=VARCHAR}
+            </if>
+            <!--数据权限-->
+            ${sqlMap.dsSql}
+        </where>
+    </select>
+
+    <select id="get" resultMap="BaseResultMap" >
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM uac_office t
+        <include refid="Base_Column_Joins"/>
+        WHERE t.del_flag = '0'
+        <if test="id != null and id != ''">
+            AND t.id = #{id}
+        </if>
+    </select>
+
+    <!--逻辑删除-->
+    <update id="deleteByLogic">
+        UPDATE uac_office SET
+        del_flag = '1'
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteManyByLogic">
+        UPDATE uac_office SET
+        del_flag = '1'
+        WHERE id IN
+        <foreach item="ids" collection="array" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+    </update>
+
+    <!-- 通过用户ID，查询角色所属机构-->
+    <select id="listOfficeByUserId" resultMap="BaseResultMap">
+        SELECT
+        off.*
+        FROM
+        uac_office off, uac_user_office rf,  uac_user u
+        WHERE
+        1=1
+        and rf.office_id = off.id
+        and u.id = rf.user_id
+        and u.id = #{userId}
+    </select>
+
+    <!-- 通过部门Id，查询机构绑定角色-->
+    <select id="listRoleByOfficeId" resultMap="BaseResultMap">
+        SELECT
+        r.*
+        FROM
+        uac_office off, uac_role_office rf, uac_role r
+        WHERE
+        1=1
+        and r.id = rf.role_id
+        and rf.office_id = off.id
+        and rf.office_id = #{officeId}
+    </select>
+
+    <select id="getOfficeByRoleId" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from uac_office t
+        <include refid="Base_Column_Joins"/>
+        <if test="roleId != null and roleId != ''">
+            join uac_role_office uro on uro.office_id = t.id and uro.role_id = #{roleId}
+        </if>
+        <where>
+            t.del_flag = '0'
+            <if test="uacOffice.parentId != null" >
+                AND t.parent_id = #{uacOffice.parentId,jdbcType=VARCHAR}
+            </if>
+            <if test="uacOffice.name != null" >
+                AND t.name like CONCAT('%', #{uacOffice.name,jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="uacOffice.type != null" >
+                AND t.type = #{uacOffice.type,jdbcType=CHAR}
+            </if>
+            <if test="uacOffice.grade != null" >
+                AND t.grade = #{uacOffice.grade,jdbcType=CHAR}
+            </if>
+            <if test="uacOffice.useAble != null" >
+                AND t.use_able = #{uacOffice.useAble,jdbcType=VARCHAR}
+            </if>
+            <if test="uacOffice.primaryPerson != null" >
+                AND t.primary_person_id = #{uacOffice.primaryPerson.id,jdbcType=VARCHAR}
+            </if>
+            <if test="uacOffice.deputyPerson != null" >
+                AND t.deputy_person_id = #{uacOffice.deputyPerson.id,jdbcType=VARCHAR}
+            </if>
+            <!--数据权限-->
+            ${uacOffice.sqlMap.dsSql}
+        </where>
+    </select>
+</mapper>

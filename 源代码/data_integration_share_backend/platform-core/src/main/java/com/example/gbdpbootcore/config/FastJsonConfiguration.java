@@ -1,0 +1,109 @@
+package com.example.gbdpbootcore.config;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson.support.config.FastJsonConfig;
+import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+@Configuration
+public class FastJsonConfiguration extends WebMvcConfigurationSupport
+{
+
+    @Value("${resources.paths:#{null}}")
+    private String paths;
+
+    /**
+     * 修改自定义消息转换器
+     * @param converters 消息转换器列表
+     */
+    @Override
+    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+        //调用父类的配置
+        super.configureMessageConverters(converters);
+        //创建fastJson消息转换器
+        FastJsonHttpMessageConverter fastConverter = new FastJsonHttpMessageConverter();
+
+        //升级最新版本需加=============================================================
+        List<MediaType> supportedMediaTypes = new ArrayList<>();
+        supportedMediaTypes.add(MediaType.APPLICATION_JSON);
+        supportedMediaTypes.add(MediaType.APPLICATION_JSON_UTF8);
+        supportedMediaTypes.add(MediaType.APPLICATION_ATOM_XML);
+        supportedMediaTypes.add(MediaType.APPLICATION_FORM_URLENCODED);
+        supportedMediaTypes.add(MediaType.APPLICATION_OCTET_STREAM);
+        supportedMediaTypes.add(MediaType.APPLICATION_PDF);
+        supportedMediaTypes.add(MediaType.APPLICATION_RSS_XML);
+        supportedMediaTypes.add(MediaType.APPLICATION_XHTML_XML);
+        supportedMediaTypes.add(MediaType.APPLICATION_XML);
+        supportedMediaTypes.add(MediaType.IMAGE_GIF);
+        supportedMediaTypes.add(MediaType.IMAGE_JPEG);
+        supportedMediaTypes.add(MediaType.IMAGE_PNG);
+        supportedMediaTypes.add(MediaType.TEXT_EVENT_STREAM);
+        supportedMediaTypes.add(MediaType.TEXT_HTML);
+        supportedMediaTypes.add(MediaType.TEXT_MARKDOWN);
+        supportedMediaTypes.add(MediaType.TEXT_PLAIN);
+        supportedMediaTypes.add(MediaType.TEXT_XML);
+        supportedMediaTypes.add(MediaType.parseMediaType(MediaType.TEXT_HTML + ";charset=UTF-8"));
+        fastConverter.setSupportedMediaTypes(supportedMediaTypes);
+
+        //创建配置类
+        FastJsonConfig fastJsonConfig = new FastJsonConfig();
+        //修改配置返回内容的过滤
+        //WriteNullListAsEmpty  ：List字段如果为null,输出为[],而非null
+        //WriteNullStringAsEmpty ： 字符类型字段如果为null,输出为"",而非null
+        //DisableCircularReferenceDetect ：消除对同一对象循环引用的问题，默认为false（如果不配置有可能会进入死循环）
+        //WriteNullBooleanAsFalse：Boolean字段如果为null,输出为false,而非null
+        //WriteMapNullValue：是否输出值为null的字段,默认为false
+        fastJsonConfig.setSerializerFeatures(
+                SerializerFeature.DisableCircularReferenceDetect,
+                SerializerFeature.WriteMapNullValue
+        );
+        fastConverter.setFastJsonConfig(fastJsonConfig);
+        //将fastjson添加到视图消息转换器列表内
+        converters.add(fastConverter);
+    }
+    /**
+     * 发现如果继承了WebMvcConfigurationSupport，则在yml中配置的相关内容会失效。
+     * 需要重新指定静态资源
+     * @param registry
+     */
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/**").addResourceLocations("classpath:/static/");
+        registry.addResourceHandler("swagger-ui.html")
+                .addResourceLocations("classpath:/META-INF/resources/");
+        registry.addResourceHandler("/webjars/**")
+                .addResourceLocations("classpath:/META-INF/resources/webjars/");
+        if (StringUtils.isNotEmpty(paths)) {
+            String[] names = paths.split(",");
+            for (String fileName : names) {
+                //判断操作系统
+                File file=new File(fileName);
+                String path = file.getAbsolutePath().substring(0, file.getAbsolutePath().indexOf(file.getName()));
+                String os = System.getProperty("os.name");
+                //项目相对路径+项目动态绝对路径
+                registry.addResourceHandler("/" + fileName + "/**").
+                        addResourceLocations("file:"+path+"/" + fileName + "/");
+            }
+        }
+        super.addResourceHandlers(registry);
+    }
+
+
+    /**
+     * 配置servlet处理
+     */
+    @Override
+    public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
+        configurer.enable();
+    }
+}

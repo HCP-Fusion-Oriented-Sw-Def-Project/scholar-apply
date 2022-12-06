@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.gbdpuserac.mapper.CoordinationEventDeptMapper">
+
+    <resultMap type="com.example.gbdpuserac.entity.CoordinationEventDept" id="CoordinationEventDeptMap">
+                    <result property="id" column="id" jdbcType="VARCHAR"/>
+                    <result property="eventId" column="event_id" jdbcType="VARCHAR"/>
+                    <result property="deptId" column="dept_id" jdbcType="VARCHAR"/>
+                    <result property="createBy" column="create_by" jdbcType="VARCHAR"/>
+                    <result property="updateBy" column="update_by" jdbcType="VARCHAR"/>
+                    <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+                    <result property="updateDate" column="update_date" jdbcType="TIMESTAMP"/>
+                    <result property="delFlag" column="del_flag" jdbcType="VARCHAR"/>
+                    <result property="remarks" column="remarks" jdbcType="VARCHAR"/>
+                    <result property="status" column="status" jdbcType="INTEGER"/>
+            </resultMap>
+
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        t.id,
+                            t.event_id AS eventId,
+                    t.dept_id AS deptId,
+                    t.create_by AS createBy,
+                    t.update_by AS updateBy,
+                    t.create_date AS createDate,
+                    t.update_date AS updateDate,
+                    t.del_flag AS delFlag,
+                    t.remarks AS remarks,
+                    t.status AS status
+        </sql>
+
+    <!--逻辑删除-->
+    <update id="deleteByLogic">
+        UPDATE standard-info-platform.coordination_event_dept SET
+        del_flag = '1'
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteManyByLogic">
+        UPDATE standard-info-platform.coordination_event_dept SET
+        del_flag = '1'
+        WHERE id IN (#{ids})
+    </update>
+</mapper>

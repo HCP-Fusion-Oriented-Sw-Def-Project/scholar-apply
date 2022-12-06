@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.gbdpuserac.mapper.UacMenuMapper">
+ 
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.example.gbdpuserac.model.UacMenu">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+            <result column="parent_id" property="parentId" jdbcType="VARCHAR"/>
+            <result column="parent_ids" property="parentIds" jdbcType="VARCHAR"/>
+            <result column="name" property="name" jdbcType="VARCHAR"/>
+            <result column="code" property="code" jdbcType="VARCHAR"/>
+            <result column="url" property="url" jdbcType="VARCHAR"/>
+            <result column="icon" property="icon" jdbcType="VARCHAR"/>
+            <result column="is_show" property="isShow" jdbcType="CHAR"/>
+            <result column="sort" property="sort" jdbcType="INTEGER"/>
+            <result column="level" property="level" jdbcType="INTEGER"/>
+            <result column="type" property="type" jdbcType="INTEGER"/>
+            <result column="permission" property="permission" jdbcType="VARCHAR"/>
+            <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
+            <result column="create_date" property="createDate" jdbcType="TIMESTAMP"/>
+            <result column="update_by" property="updateBy" jdbcType="VARCHAR"/>
+            <result column="update_date" property="updateDate" jdbcType="TIMESTAMP"/>
+            <result column="remarks" property="remarks" jdbcType="VARCHAR"/>
+            <result column="del_flag" property="delFlag" jdbcType="CHAR"/>
+    </resultMap>
+ 
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+                t.id,
+                t.parent_id AS parent_id,
+                t.parent_ids AS parent_ids,
+                t.name AS name,
+                t.code AS code,
+                t.url AS url,
+                t.icon AS icon,
+                t.is_show AS is_show,
+                t.sort AS sort,
+                t.level AS level,
+                t.type AS type,
+                t.permission AS permission,
+                t.create_by AS create_by,
+                t.create_date AS create_date,
+                t.update_by AS update_by,
+                t.update_date AS update_date,
+                t.remarks AS remarks,
+                t.del_flag AS del_flag
+    </sql>
+
+    <!--
+    JOIN uac_user u ON u.id = t.user_id
+	JOIN uac_office o ON o.id = t.office_id
+    -->
+
+    <sql id="Base_Column_Joins">
+    </sql>
+    <select id="listPage" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from uac_menu t
+        <include refid="Base_Column_Joins"/>
+        <where>
+            t.del_flag = '0'
+            <if test="parentId != null" >
+                AND t.parent_id = #{parentId,jdbcType=VARCHAR}
+            </if>
+            <if test="name != null" >
+                AND t.name like CONCAT('%', #{name,jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="code != null" >
+                AND t.code = #{code,jdbcType=VARCHAR}
+            </if>
+            <if test="url != null" >
+                AND t.url like CONCAT('%', #{url,jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="isShow != null" >
+                AND t.is_show = #{isShow,jdbcType=CHAR}
+            </if>
+            <if test="level != null" >
+                AND t.level = #{level,jdbcType=INTEGER}
+            </if>
+            <if test="type != null" >
+                AND t.type = #{type,jdbcType=INTEGER}
+            </if>
+            <if test="permission != null" >
+                AND t.permission like CONCAT('%', #{permission,jdbcType=VARCHAR}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="get" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM uac_menu t
+        <include refid="Base_Column_Joins"/>
+        WHERE t.del_flag = '0'
+        <if test="id != null and id != ''">
+            AND t.id = #{id,jdbcType=VARCHAR}
+        </if>
+    </select>
+
+    <!--逻辑删除-->
+    <update id="deleteByLogic">
+        UPDATE uac_menu SET
+        del_flag = '1'
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteManyByLogic">
+        UPDATE uac_menu SET
+        del_flag = '1'
+        WHERE id IN
+        <foreach item="ids" collection="array" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+    </update>
+
+    <select id="listMenuByUserId" resultMap="BaseResultMap">
+        SELECT
+        m.*
+        FROM
+        uac_role r, uac_role_menu rm, uac_menu m, uac_user u , uac_role_user ur
+        WHERE
+        1=1
+        and m.del_flag = '0'
+        and rm.del_flag = '0'
+        and u.del_flag = '0'
+        and ur.del_flag = '0'
+        and r.id = rm.role_id
+        and rm.menu_id = m.id
+        and ur.role_id = r.id
+        and u.id = ur.user_id
+        and u.id = #{userId}
+    </select>
+
+    <select id="listMenuPerByUserId" resultType="java.lang.String">
+        SELECT DISTINCT
+        m.permission
+        FROM
+        uac_role r, uac_role_menu rm, uac_menu m, uac_user u , uac_role_user ur
+        WHERE
+        1=1
+        and m.del_flag = '0'
+        and rm.del_flag = '0'
+        and u.del_flag = '0'
+        and ur.del_flag = '0'
+        and r.id = rm.role_id
+        and rm.menu_id = m.id
+        and ur.role_id = r.id
+        and u.id = ur.user_id
+        and u.id = #{userId}
+    </select>
+
+    <select id="listMenuByRoleIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        SELECT DISTINCT
+        m.*
+        FROM
+        uac_menu m
+        LEFT JOIN uac_role_menu rm ON rm.menu_id = m.id
+        WHERE
+        1=1
+        AND rm.del_flag = 0
+        AND m.del_flag = 0
+        and rm.role_id in
+        <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        ORDER BY m.sort asc
+    </select>
+
+    <select id="listMenuByRoleId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM
+        uac_role_menu rm, uac_menu t
+        WHERE
+        1=1
+        and rm.del_flag = '0'
+        and t.del_flag = '0'
+        and rm.menu_id = t.id
+        and rm.role_id = #{roleId}
+        ORDER BY t.sort asc
+    </select>
+</mapper>

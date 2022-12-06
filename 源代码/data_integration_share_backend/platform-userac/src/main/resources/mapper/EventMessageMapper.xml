@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.gbdpuserac.mapper.EventMessageMapper">
+
+    <resultMap type="com.example.gbdpuserac.entity.EventMessage" id="BaseResultMap">
+            <result property="id" column="id" jdbcType="VARCHAR"/>
+            <result property="noKey" column="no_key" jdbcType="NUMERIC"/>
+            <result property="no" column="no" jdbcType="VARCHAR"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="reportDate" column="report_date" jdbcType="TIMESTAMP"/>
+            <result property="serviceName" column="service_name" jdbcType="VARCHAR"/>
+            <result property="serviceVersion" column="service_version" jdbcType="VARCHAR"/>
+            <result property="serviceSupplier" column="service_supplier" jdbcType="VARCHAR"/>
+            <result property="servicePosition" column="service_position" jdbcType="VARCHAR"/>
+            <result property="serviceIp" column="service_ip" jdbcType="VARCHAR"/>
+            <result property="disclosureRisk" column="disclosure_risk" jdbcType="VARCHAR"/>
+            <result property="dataIntegrityRisk" column="data_integrity_risk" jdbcType="VARCHAR"/>
+            <result property="systemAvailabilityRisk" column="system_availability_risk" jdbcType="VARCHAR"/>
+            <result property="influenceScope" column="influence_scope" jdbcType="VARCHAR"/>
+            <result property="repairDifficulty" column="repair_difficulty" jdbcType="VARCHAR"/>
+            <result property="securityLevel" column="security_level" jdbcType="VARCHAR"/>
+            <result property="processType" column="process_type" jdbcType="VARCHAR"/>
+            <result property="distributionType" column="distribution_type" jdbcType="VARCHAR"/>
+            <result property="status" column="status" jdbcType="INTEGER"/>
+            <result property="requestDeptVOS" column="request_dept_v_o_s" jdbcType="VARCHAR"/>
+            <result property="left2" column="left2" jdbcType="VARCHAR"/>
+            <result property="left3" column="left3" jdbcType="VARCHAR"/>
+            <result property="createBy" column="create_by" jdbcType="VARCHAR"/>
+            <result property="updateBy" column="update_by" jdbcType="VARCHAR"/>
+            <result property="submitTime" column="submit_time" jdbcType="TIMESTAMP"/>
+            <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+            <result property="updateDate" column="update_date" jdbcType="TIMESTAMP"/>
+            <result property="delFlag" column="del_flag" jdbcType="VARCHAR"/>
+            <result property="remarks" column="remarks" jdbcType="VARCHAR"/>
+            <result property="reportDeptName" column="report_dept_name" jdbcType="VARCHAR"/>
+    </resultMap>
+
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+
+            t.no_key AS no_key,
+            t.no AS no,
+            t.name AS name,
+            t.report_date AS report_date,
+            t.service_name AS service_name,
+            t.service_version AS service_version,
+            t.service_supplier AS service_supplier,
+            t.service_position AS service_position,
+            t.service_ip AS service_ip,
+            t.disclosure_risk AS disclosure_risk,
+            t.data_integrity_risk AS data_integrity_risk,
+            t.system_availability_risk AS system_availability_risk,
+            t.influence_scope AS influence_scope,
+            t.repair_difficulty AS repair_difficulty,
+            t.security_level AS security_level,
+            t.process_type AS process_type,
+            t.distribution_type AS distribution_type,
+            t.status AS status,
+            t.request_dept_v_o_s AS request_dept_v_o_s,
+            t.left2 AS left2,
+            t.left3 AS left3,
+            t.submit_time AS submit_time,
+            t.create_by AS create_by,
+            t.update_by AS update_by,
+            t.create_date AS create_date,
+            t.update_date AS update_date,
+            t.del_flag AS del_flag,
+            t.remarks AS remarks,
+t.id,
+uo.name AS report_dept_name
+    </sql>
+
+    <sql id="Base_Column_Joins">
+        left join uac_user_office uuo on t.create_by = uuo.user_id
+        left join uac_office uo on uo.id = uuo.office_id
+    </sql>
+
+    <!--逻辑删除-->
+    <update id="deleteByLogic">
+        UPDATE event_message SET
+        del_flag = '1'
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteManyByLogic">
+        UPDATE event_message SET
+        del_flag = '1'
+        WHERE id IN (#{ids})
+    </update>
+
+    <select id="listPage" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from event_message t
+        <include refid="Base_Column_Joins"/>
+        <where>
+            t.del_flag = '0'
+            AND t.status != 0
+            <!-- 这里写查询筛选条件，下面是举例写法 -->
+            <if test="id != null and id != ''">
+                AND t.id = #{id}
+            </if>
+            <if test="status != null">
+                AND t.status = #{status}
+            </if>
+            <if test="reportDeptName != null and reportDeptName != ''">
+                AND uo.name like CONCAT('%', #{reportDeptName}, '%')
+            </if>
+            <if test="name != null and name != ''">
+                AND t.name like CONCAT('%', #{name}, '%')
+            </if>
+            <if test="remarks != null and remarks != ''">
+                AND t.remarks like CONCAT('%', #{remarks}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="listMy" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from event_message t
+        left join coordination_event_dept ced on t.id = ced.event_id
+        <include refid="Base_Column_Joins"/>
+        <where>
+            t.del_flag = '0'
+            and( ced.dept_id = #{deptId} or uuo.office_id = #{deptId})
+            <if test="id != null and id != ''">
+                AND t.id = #{id}
+            </if>
+            <if test="status != null">
+                AND t.status = #{status}
+            </if>
+            <if test="reportDeptName != null and reportDeptName != ''">
+                AND uo.name like CONCAT('%', #{reportDeptName}, '%')
+            </if>
+            <if test="name != null and name != ''">
+                AND t.name like CONCAT('%', #{name}, '%')
+            </if>
+            <if test="remarks != null and remarks != ''">
+                AND t.remarks like CONCAT('%', #{remarks}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="get" resultMap="BaseResultMap" >
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM event_message t
+        <include refid="Base_Column_Joins"/>
+        WHERE t.del_flag = '0'
+        <if test="id != null and id != ''">
+            AND t.id = #{id}
+        </if>
+    </select>
+
+    <select id="averageProcessTime" resultType="com.example.gbdpuserac.dto.AverageProcessTimeDto" >
+        SELECT COUNT(em.id) as totalNum,SUM(TIMESTAMPDIFF(HOUR,em.submit_time,ec.process_time)) as totalHour FROM event_message em
+        INNER JOIN
+        (SELECT ecr.event_id as event_id,MAX(ecr.create_date) as process_time FROM event_coordination_record ecr WHERE ecr.process_status = 1 GROUP BY ecr.event_id) as ec
+        on em.id = ec.event_id
+        WHERE em.del_flag = "0" and (em.status = -1 or em.`status`= -2)
+    </select>
+
+    <select id="calProportion" resultType="com.example.gbdpuserac.dto.ProportionDto">
+        SELECT ${type} as type,sum(1) as num from event_message t where t.del_flag="0" group by ${type}
+    </select>
+
+    <select id="staticByHour" resultType="com.example.gbdpuserac.dto.StaticByTimeDto">
+        SELECT time, COUNT( * ) AS num
+        FROM
+        (
+            SELECT
+            DATE_FORMAT(
+            concat( date( submit_time ), ' ', HOUR ( submit_time ), ':', floor( MINUTE ( submit_time ) / 10 ) * 10 ),
+            '%Y-%m-%d %H:%i'
+        ) AS time
+        FROM event_message
+        WHERE del_flag = 0 AND submit_time is not NULL AND timestampdiff(HOUR,submit_time,now()) <![CDATA[<=]]> 1
+        ) a
+        GROUP BY DATE_FORMAT( time, '%Y-%m-%d %H:%i' )
+        ORDER BY time
+    </select>
+
+    <select id="staticByDay" resultType="com.example.gbdpuserac.dto.StaticByTimeDto">
+        SELECT DATE_FORMAT(submit_time, '%Y-%m-%d %H:00:00') AS time, COUNT(*) AS num
+        FROM event_message
+        WHERE del_flag = 0 AND submit_time is not NULL AND timestampdiff(DAY,submit_time,now()) <![CDATA[<=]]> 1
+        GROUP BY time
+        ORDER BY time
+    </select>
+
+    <select id="staticAll" resultType="com.example.gbdpuserac.dto.StaticByTimeDto">
+        SELECT DATE(submit_time) AS time, COUNT(*) AS num
+        FROM event_message
+        WHERE del_flag = 0 AND submit_time is not NULL
+        GROUP BY time
+        ORDER BY time
+    </select>
+
+    <select id="staticDept" resultType="com.example.gbdpuserac.model.vo.StaticDeptVO">
+        SELECT uo.id as officeId,uo.name as officeName,sum(1) as num
+        FROM event_message t
+         LEFT JOIN uac_user_office uuo on uuo.user_id = t.create_by
+         LEFT JOIN uac_office uo on uo.id = uuo.office_id
+        WHERE t.del_flag = 0 and uo.id is not NULL AND t.status != 0
+        GROUP BY uo.id
+        ORDER BY num DESC
+        LIMIT 10
+    </select>
+</mapper>

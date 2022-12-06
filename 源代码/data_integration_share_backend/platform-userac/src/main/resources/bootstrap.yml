@@ -1,0 +1,27 @@
+auth:
+  permitall:
+    -
+      pattern: /login
+    -
+      pattern: /logout
+    -
+      pattern: /v2/api-docs
+    -
+      pattern: /swagger-resources
+    -
+      pattern: /swagger-ui.html
+    -
+      pattern: /doc.html
+    -
+      pattern: /codeController/**
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+#很重要
+security:
+    oauth2:
+      resource:
+        filter-order: 3

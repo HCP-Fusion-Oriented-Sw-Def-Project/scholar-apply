@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.gbdpuserac.mapper.EventCoordinationRecordMapper">
+
+    <resultMap type="com.example.gbdpuserac.entity.EventCoordinationRecord" id="BaseResultMap">
+                    <result property="id" column="id" jdbcType="VARCHAR"/>
+                    <result property="eventId" column="event_id" jdbcType="VARCHAR"/>
+                    <result property="processStatus" column="process_status" jdbcType="INTEGER"/>
+                    <result property="result" column="result" jdbcType="VARCHAR"/>
+                    <result property="remark" column="remark" jdbcType="VARCHAR"/>
+                    <result property="createBy" column="create_by" jdbcType="VARCHAR"/>
+                    <result property="updateBy" column="update_by" jdbcType="VARCHAR"/>
+                    <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+                    <result property="updateDate" column="update_date" jdbcType="TIMESTAMP"/>
+                    <result property="delFlag" column="del_flag" jdbcType="VARCHAR"/>
+                    <result property="remarks" column="remarks" jdbcType="VARCHAR"/>
+                    <result property="deptId" column="dept_id" jdbcType="VARCHAR"/>
+                    <result property="processPerson" column="process_person" jdbcType="VARCHAR"/>
+                    <result property="coordinationDept" column="coordination_dept" jdbcType="VARCHAR"/>
+            </resultMap>
+
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        t.event_id AS event_id,
+        t.process_status AS process_status,
+        t.result AS result,
+        t.remark AS remark,
+        t.create_by AS create_by,
+        t.update_by AS update_by,
+        t.create_date AS create_date,
+        t.update_date AS update_date,
+        t.del_flag AS del_flag,
+        t.remarks AS remarks,
+        t.dept_id AS dept_id,
+        t.id,
+        uu.name as process_person,
+        uo.name as coordination_dept
+
+    </sql>
+
+    <sql id="Base_Column_Joins">
+        left join uac_user uu on t.create_by = uu.id
+        left join uac_office uo on uo.id = t.dept_id
+    </sql>
+
+    <!--逻辑删除-->
+    <update id="deleteByLogic">
+        UPDATE event_coordination_record SET
+            del_flag = '1'
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteManyByLogic">
+        UPDATE event_coordination_record SET
+            del_flag = '1'
+        WHERE id IN (#{ids})
+    </update>
+
+    <select id="listPage" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from event_coordination_record t
+        <include refid="Base_Column_Joins"/>
+        <where>
+            t.del_flag = '0'
+            <!-- 这里写查询筛选条件，下面是举例写法 -->
+            <if test="id != null and id != ''">
+                AND t.id = #{id}
+            </if>
+            <if test="eventId != null and eventId != ''">
+                AND t.event_id = #{eventId}
+            </if>
+            <if test="deptId != null and deptId != ''">
+                AND t.dept_id = #{deptId}
+            </if>
+            <if test="remarks != null and remarks != ''">
+                AND t.remarks like CONCAT('%', #{remarks}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="get" resultMap="BaseResultMap" >
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM event_coordination_record t
+        <include refid="Base_Column_Joins"/>
+        WHERE t.del_flag = '0'
+        <if test="id != null and id != ''">
+            AND t.id = #{id}
+        </if>
+    </select>
+</mapper>

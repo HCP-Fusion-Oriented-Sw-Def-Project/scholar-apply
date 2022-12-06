@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.gbdpuserac.mapper.StandardMessageMapper">
+
+    <resultMap type="com.example.gbdpuserac.model.StandardMessage" id="BaseResultMap">
+                    <result property="id" column="id" jdbcType="VARCHAR"/>
+                    <result property="chineseName" column="chinese_name" jdbcType="VARCHAR"/>
+                    <result property="englishName" column="english_name" jdbcType="VARCHAR"/>
+                    <result property="grade" column="grade" jdbcType="INTEGER"/>
+                    <result property="attribute" column="attribute" jdbcType="INTEGER"/>
+                    <result property="type" column="type" jdbcType="INTEGER"/>
+                    <result property="planId" column="plan_id" jdbcType="VARCHAR"/>
+                    <result property="state" column="state" jdbcType="INTEGER"/>
+                    <result property="auditState" column="audit_state" jdbcType="INTEGER"/>
+                    <result property="code" column="code" jdbcType="VARCHAR"/>
+                    <result property="replacedCode" column="replaced_code" jdbcType="VARCHAR"/>
+                    <result property="department" column="department" jdbcType="VARCHAR"/>
+                    <result property="focalOrganization" column="focal_organization" jdbcType="VARCHAR"/>
+                    <result property="publishOrganization" column="publish_organization" jdbcType="VARCHAR"/>
+                    <result property="introduction" column="introduction" jdbcType="VARCHAR"/>
+                    <result property="publishDate" column="publish_date" jdbcType="TIMESTAMP"/>
+                    <result property="effectiveDate" column="effective_date" jdbcType="TIMESTAMP"/>
+                    <result property="ics" column="ICS" jdbcType="VARCHAR"/>
+                    <result property="ccs" column="CCS" jdbcType="VARCHAR"/>
+                    <result property="useIcs" column="use_ICS" jdbcType="VARCHAR"/>
+                    <result property="adoptDegree" column="adopt_degree" jdbcType="VARCHAR"/>
+                    <result property="proposeOrganization" column="propose_organization" jdbcType="VARCHAR"/>
+                    <result property="responsibleDraftOrganization" column="responsible_draft_organization" jdbcType="VARCHAR"/>
+                    <result property="draftOrganization" column="draft_organization" jdbcType="VARCHAR"/>
+                    <result property="drafter" column="drafter" jdbcType="VARCHAR"/>
+                    <result property="previousVersions" column="previous_versions" jdbcType="VARCHAR"/>
+                    <result property="standardRange" column="standard_range" jdbcType="INTEGER"/>
+                    <result property="normativeReferences" column="normative_references" jdbcType="VARCHAR"/>
+                    <result property="hasTerm" column="has_term" jdbcType="BOOLEAN"/>
+                    <result property="hasAcronym" column="has_acronym" jdbcType="BOOLEAN"/>
+                    <result property="referencesDoc" column="references_doc" jdbcType="VARCHAR"/>
+                    <result property="pages" column="pages" jdbcType="INTEGER"/>
+                    <result property="fullTextFile" column="full_text_file" jdbcType="VARCHAR"/>
+                    <result property="createBy" column="create_by" jdbcType="VARCHAR"/>
+                    <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+                    <result property="updateBy" column="update_by" jdbcType="VARCHAR"/>
+                    <result property="updateDate" column="update_date" jdbcType="TIMESTAMP"/>
+                    <result property="remarks" column="remarks" jdbcType="VARCHAR"/>
+                    <result property="delFlag" column="del_flag" jdbcType="VARCHAR"/>
+            </resultMap>
+
+    <sql id="Base_Column_Joins">
+    </sql>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+                t.chinese_name,
+            t.english_name,
+            t.grade,
+            t.attribute,
+            t.type,
+            t.plan_id,
+            t.state,
+            t.audit_state,
+            t.code,
+            t.replaced_code,
+            t.department,
+            t.focal_organization,
+            t.publish_organization,
+            t.introduction,
+            t.publish_date,
+            t.effective_date,
+            t.ICS,
+            t.CCS,
+            t.use_ICS,
+            t.adopt_degree,
+            t.propose_organization,
+            t.responsible_draft_organization,
+            t.draft_organization,
+            t.drafter,
+            t.previous_versions,
+            t.standard_range,
+            t.normative_references,
+            t.has_term,
+            t.has_acronym,
+            t.references_doc,
+            t.pages,
+            t.full_text_file,
+            t.create_by,
+            t.create_date,
+            t.update_by,
+            t.update_date,
+            t.remarks,
+            t.del_flag,
+t.id
+    </sql>
+
+    <select id="listPage" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from standard_message t
+        <include refid="Base_Column_Joins"/>
+        <where>
+            t.del_flag = '0'
+            <!-- 这里写查询筛选条件，下面是举例写法 -->
+            <if test="id != null and id != ''">
+                AND t.id = #{id}
+            </if>
+            <if test="remarks != null and remarks != ''">
+                AND t.remarks like CONCAT('%', #{remarks}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="get" resultMap="BaseResultMap" >
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM standard_message t
+        <include refid="Base_Column_Joins"/>
+        WHERE t.del_flag = '0'
+        <if test="id != null and id != ''">
+            AND t.id = #{id}
+        </if>
+    </select>
+
+    <!--逻辑删除-->
+    <update id="deleteByLogic">
+        UPDATE standard_message SET
+        del_flag = '1'
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteManyByLogic">
+        UPDATE standard_message SET
+        del_flag = '1'
+        WHERE id IN
+        <foreach item="ids" collection="array" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+    </update>
+</mapper>

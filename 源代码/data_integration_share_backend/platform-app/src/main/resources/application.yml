@@ -1,0 +1,36 @@
+# 线上环境配置
+# 数据源配置，请修改为你项目的实际配置
+spring:
+  profiles:
+    active: @profileActive@
+  application:
+    name: @pom.artifactId@
+
+#logging:
+#  config: classpath:logback-spring.xml
+#  path: /data/logs/standard-information-platform/${spring.application.name}  # ${spring.application.name}
+#  file: ${spring.application.name}
+#  level:
+#    org.springframework: INFO
+#    instance-id: ${spring.application.name}:${spring.cloud.client.ipAddress}:${server.port}
+security:
+  oauth2:
+    client:
+      resource-ids: ${spring.application.name}
+
+auth:
+  permitall:
+    -
+      pattern: /login
+    -
+      pattern: /logout
+    -
+      pattern: /v2/api-docs
+    -
+      pattern: /swagger-resources
+    -
+      pattern: /swagger-ui.html
+    -
+      pattern: /doc.html
+    -
+      pattern: /codeController/getCode

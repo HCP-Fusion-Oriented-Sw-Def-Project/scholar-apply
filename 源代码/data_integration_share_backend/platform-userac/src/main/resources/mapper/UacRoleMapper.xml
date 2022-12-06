@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.gbdpuserac.mapper.UacRoleMapper">
+ 
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.example.gbdpuserac.model.UacRole">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="enname" property="enname" jdbcType="VARCHAR"/>
+        <result column="role_type" property="roleType" jdbcType="VARCHAR"/>
+        <result column="data_scope" property="dataScope" jdbcType="CHAR"/>
+        <result column="is_sys" property="isSys" jdbcType="VARCHAR"/>
+        <result column="use_able" property="useAble" jdbcType="VARCHAR"/>
+        <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
+        <result column="create_date" property="createDate" jdbcType="TIMESTAMP"/>
+        <result column="update_by" property="updateBy" jdbcType="VARCHAR"/>
+        <result column="update_date" property="updateDate" jdbcType="TIMESTAMP"/>
+        <result column="remarks" property="remarks" jdbcType="VARCHAR"/>
+        <result column="del_flag" property="delFlag" jdbcType="CHAR"/>
+    </resultMap>
+ 
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+                t.id,
+                t.name AS name,
+                t.enname AS enname,
+                t.role_type AS role_type,
+                t.data_scope AS data_scope,
+                t.is_sys AS is_sys,
+                t.use_able AS use_able,
+                t.create_by AS create_by,
+                t.create_date AS create_date,
+                t.update_by AS update_by,
+                t.update_date AS update_date,
+                t.remarks AS remarks,
+                t.del_flag AS del_flag
+    </sql>
+    <sql id="Base_Column_Joins">
+        <!-- 数据权限限制join -->
+        LEFT JOIN uac_role_office uro ON uro.role_id = t.id
+        LEFT JOIN uac_office uo ON uo.id = uro.office_id
+        LEFT JOIN uac_user uu ON uu.id = t.create_by
+    </sql>
+    <select id="listPage" resultMap="BaseResultMap">
+        select DISTINCT
+        <include refid="Base_Column_List" />
+        from uac_role t
+        <include refid="Base_Column_Joins"/>
+        <where>
+            t.del_flag = '0'
+            <if test="name != null and name != ''" >
+                AND t.name like CONCAT('%', #{name,jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="enname != null and enname != ''" >
+                AND t.enname like CONCAT('%', #{enname,jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="roleType != null" >
+                AND t.role_type = #{roleType,jdbcType=VARCHAR}
+            </if>
+            <if test="dataScope != null" >
+                AND t.data_scope = #{dataScope,jdbcType=CHAR}
+            </if>
+            <if test="isSys != null" >
+                AND t.is_sys = #{isSys,jdbcType=VARCHAR}
+            </if>
+            <if test="useAble != null" >
+                AND t.use_able = #{useAble,jdbcType=VARCHAR}
+            </if>
+            <!--数据权限-->
+            ${sqlMap.dsSql}
+        </where>
+    </select>
+
+    <select id="get" resultMap="BaseResultMap" >
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM uac_role t
+        <include refid="Base_Column_Joins"/>
+        WHERE t.del_flag = '0'
+        <if test="id != null and id != ''">
+            AND t.id = #{id}
+        </if>
+    </select>
+
+    <!--逻辑删除-->
+    <update id="deleteByLogic">
+        UPDATE uac_role SET
+        del_flag = '1'
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteManyByLogic">
+        UPDATE uac_role SET
+        del_flag = '1'
+        WHERE id IN
+        <foreach item="ids" collection="array" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+    </update>
+
+    <!-- 通过用户ID，查询角色信息-->
+    <select id="listRolesByUserId" resultMap="BaseResultMap">
+        SELECT
+        r.*
+        FROM
+        uac_role r, uac_role_user ur WHERE r.id = ur.role_id AND r.del_flag = 0 and  ur.user_id IN
+        <foreach item="userId" collection="array" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </select>
+</mapper>

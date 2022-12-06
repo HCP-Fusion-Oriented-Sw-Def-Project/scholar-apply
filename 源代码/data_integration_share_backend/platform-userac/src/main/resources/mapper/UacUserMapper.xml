@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.gbdpuserac.mapper.UacUserMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.example.gbdpuserac.model.UacUser">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="login_name" property="loginName" jdbcType="VARCHAR"/>
+        <result column="password" property="password" jdbcType="VARCHAR"/>
+        <result column="user_code" property="userCode" jdbcType="VARCHAR"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="phone" property="phone" jdbcType="VARCHAR"/>
+        <result column="email" property="email" jdbcType="VARCHAR"/>
+        <result column="photo" property="photo" jdbcType="VARCHAR"/>
+        <result column="user_source" property="userSource" jdbcType="VARCHAR"/>
+        <result column="last_login_ip" property="lastLoginIp" jdbcType="VARCHAR"/>
+        <result column="last_login_time" property="lastLoginTime" jdbcType="TIMESTAMP"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="is_changed_pwd" property="isChangedPwd" jdbcType="SMALLINT"/>
+        <result column="pwd_error_count" property="pwdErrorCount" jdbcType="SMALLINT"/>
+        <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
+        <result column="create_date" property="createDate" jdbcType="TIMESTAMP"/>
+        <result column="update_by" property="updateBy" jdbcType="VARCHAR"/>
+        <result column="update_date" property="updateDate" jdbcType="TIMESTAMP"/>
+        <result column="remarks" property="remarks" jdbcType="VARCHAR"/>
+        <result column="del_flag" property="delFlag" jdbcType="CHAR"/>
+        <result column="office_id" property="uacOffice.id" jdbcType="VARCHAR"/>
+        <result column="office_name" property="uacOffice.name" jdbcType="VARCHAR"/>
+        <result column="office_type" property="uacOffice.type"/>
+        <result column="office_grade" property="uacOffice.grade" />
+        <result column="office_address" property="uacOffice.address" jdbcType="VARCHAR"/>
+        <result column="office_sort" property="uacOffice.sort" />
+        <result column="office_email" property="uacOffice.email" jdbcType="VARCHAR"/>
+        <result column="office_phone" property="uacOffice.phone" jdbcType="VARCHAR"/>
+        <result column="office_use_able" property="uacOffice.useAble"/>
+        <result column="office_parent_id" property="uacOffice.parentId" />
+        <result column="office_primary_person" property="uacOffice.primaryPerson.id" jdbcType="VARCHAR"/>
+        <result column="office_deputy_person" property="uacOffice.deputyPerson.id" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        t.id,
+        t.login_name AS login_name,
+        t.password AS password,
+        t.user_code AS user_code,
+        t.name AS name,
+        t.phone AS phone,
+        t.email AS email,
+        t.photo AS photo,
+        t.user_source AS user_source,
+        t.last_login_ip AS last_login_ip,
+        t.last_login_time AS last_login_time,
+        t.status AS status,
+        t.is_changed_pwd AS is_changed_pwd,
+        t.pwd_error_count AS pwd_error_count,
+        t.create_by AS create_by,
+        t.create_date AS create_date,
+        t.update_by AS update_by,
+        t.update_date AS update_date,
+        t.remarks AS remarks,
+        t.del_flag AS del_flag,
+        o.id AS office_id,
+        o.name AS office_name,
+        o.type AS office_type,
+        o.grade AS office_grade,
+        o.address AS office_address,
+        o.sort AS office_sort,
+        o.email AS office_email,
+        o.phone AS office_phone,
+        o.use_able AS office_use_able,
+        o.parent_id AS office_parent_id,
+        o.primary_person_id AS office_primary_person,
+        o.deputy_person_id AS office_deputy_person
+    </sql>
+    <sql id="Base_Column_Joins">
+        LEFT JOIN uac_user_office uo ON uo.user_id = t.id
+        LEFT JOIN uac_office o ON o.id = uo.office_id
+    </sql>
+    <!-- 根据公司级别返回一个用户所在的不同等级的公司
+    LEFT JOIN uac_user_office uo ON uo.user_id = t.id
+    LEFT JOIN uac_office o ON o.id = uo.office_id AND o.grade = '1'
+    LEFT JOIN uac_user_office uo2 ON uo2.user_id = t.id
+    LEFT JOIN uac_office o2 ON o2.id = uo2.office_id AND o2.grade = '2' -->
+    <select id="get" resultMap="BaseResultMap" >
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM uac_user t
+        <include refid="Base_Column_Joins"/>
+        WHERE t.del_flag = '0'
+        <if test="id != null and id != ''">
+            AND t.id = #{id}
+        </if>
+    </select>
+    <select id="listPage" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from uac_user t
+        <if test="loginName != null" >
+            AND t.login_name like CONCAT('%', #{loginName}, '%')
+        </if>
+        <if test="userCode != null" >
+            AND t.user_code = #{userCode,jdbcType=VARCHAR},
+        </if>
+        <if test="name != null" >
+            AND t.name like CONCAT('%', #{name}, '%')
+        </if>
+        <if test="phone != null" >
+            AND t.phone like CONCAT('%', #{phone}, '%')
+        </if>
+        <if test="email != null" >
+            AND t.email like CONCAT('%', #{email,jdbcType=VARCHAR}, '%')
+        </if>
+        <if test="userSource != null" >
+            AND t.user_source = #{userSource}
+        </if>
+        <if test="status != null" >
+            AND t.status = #{status,jdbcType=VARCHAR},
+        </if>
+    </select>
+
+    <select id="getByLoginName" resultType="com.example.gbdpuserac.model.UacUser"
+            resultMap="BaseResultMap">
+        SELECT
+        u.*
+        from
+        uac_user u
+        WHERE
+        u.del_flag="0"
+        AND
+        u.login_name=#{loginName,jdbcType=VARCHAR} AND u.status ='ENABLE'
+    </select>
+    <select id="getUacUserByUserCode" resultType="com.example.gbdpuserac.model.UacUser"
+            resultMap="BaseResultMap">
+        SELECT
+        u.*,
+        g.id as officeId
+        FROM
+        uac_user u
+        LEFT JOIN uac_user_office gu on u.id = gu.user_id
+        LEFT JOIN uac_office g on gu.office_id = g.id
+        WHERE u.del_flag="0" AND u.user_code = #{userCode}
+    </select>
+
+    <!--逻辑删除-->
+    <update id="deleteByLogic">
+        UPDATE uac_user  SET
+        del_flag = '1'
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteManyByLogic">
+        UPDATE uac_user SET
+        del_flag = '1'
+        WHERE id IN
+        <foreach item="ids" collection="array" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+    </update>
+
+    <select id="findUser" resultType="com.example.gbdpuserac.model.UacUser"
+            resultMap="BaseResultMap">
+        SELECT DISTINCT
+        <include refid="Base_Column_List"/>
+        FROM uac_user t
+        <include refid="Base_Column_Joins"/>
+        LEFT JOIN uac_user_office uo1 ON uo1.user_id = t.id
+        LEFT JOIN uac_role_user ur ON ur.user_id = t.id
+        WHERE t.del_flag = '0'
+        <if test="loginName != null and loginName != ''">
+            AND t.login_name like CONCAT('%', #{loginName}, '%')
+        </if>
+        <if test="name != null and name != ''">
+            AND t.name like CONCAT('%', #{name}, '%')
+        </if>
+        <if test="phone != null and phone != ''">
+            AND t.phone like CONCAT('%', #{phone}, '%')
+        </if>
+        <if test="email != null and email != ''">
+            AND t.email like CONCAT('%', #{email}, '%')
+        </if>
+        <if test="userCode != null and userCode != ''">
+            AND t.user_code like CONCAT('%', #{userCode}, '%')
+        </if>
+        <if test="uacOffice != null and uacOffice.id != null and uacOffice.id != ''">
+            AND (uo1.office_id = #{uacOffice.id} OR o.parent_ids like CONCAT('%,', #{uacOffice.id}, ',%'))
+        </if>
+        <if test="uacRole != null and uacRole.id != null and uacRole.id != ''">
+            AND ur.role_id = #{uacRole.id}
+        </if>
+        <!--数据权限-->
+        ${sqlMap.dsSql}
+    </select>
+    <!--
+    SELECT
+        <include refid="Base_Column_List"/>
+        FROM uac_user u
+        <include refid="Base_Column_Joins"/>
+        <if test="role != null and role.id != null and role.id != ''">
+            join uac_user_role ur on ur.user_id = u.id and ur.role_id = #{role.id}
+        </if>
+        WHERE u.del_flag = '0'
+    -->
+    <select id="getUserByRoleId" resultType="com.example.gbdpuserac.model.UacUser"
+            resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM uac_user t
+        <include refid="Base_Column_Joins"/>
+        <if test="roleId != null and roleId != ''">
+        left join uac_role_user ur on ur.user_id = t.id
+        </if>
+        WHERE t.del_flag = '0'
+        <if test="uacUser != null">
+            <if test="uacUser.loginName != null and uacUser.loginName != ''">
+                AND t.login_name like CONCAT('%', #{uacUser.loginName}, '%')
+            </if>
+            <if test="uacUser.name != null and uacUser.name != ''">
+                AND t.name like CONCAT('%', #{uacUser.name}, '%')
+            </if>
+            <if test="uacUser.phone != null and uacUser.phone != ''">
+                AND t.phone like CONCAT('%', #{uacUser.phone}, '%')
+            </if>
+            <if test="uacUser.email != null and uacUser.email != ''">
+                AND t.email like CONCAT('%', #{uacUser.email}, '%')
+            </if>
+            <if test="uacUser.userCode != null and uacUser.userCode != ''">
+                AND t.user_code like CONCAT('%', #{uacUser.userCode}, '%')
+            </if>
+            <if test="roleId != null and roleId != ''">
+                and ur.role_id = #{roleId}
+            </if>
+        </if>
+    </select>
+
+    <select id="getUserByOfficeId" resultType="com.example.gbdpuserac.model.UacUser"
+            resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM uac_user t
+        <include refid="Base_Column_Joins"/>
+        <if test="officeId != null and officeId != ''">
+        left join uac_user_office uo1 on uo1.user_id = t.id
+        left join uac_office o1 on uo1.office_id = o1.id
+        </if>
+        WHERE t.del_flag = '0'
+        <if test="uacUser != null">
+            <if test="uacUser.loginName != null and uacUser.loginName != ''">
+                AND t.login_name like CONCAT('%', #{uacUser.loginName}, '%')
+            </if>
+            <if test="uacUser.name != null and uacUser.name != ''">
+                AND t.name like CONCAT('%', #{uacUser.name}, '%')
+            </if>
+            <if test="uacUser.phone != null and uacUser.phone != ''">
+                AND t.phone like CONCAT('%', #{uacUser.phone}, '%')
+            </if>
+            <if test="uacUser.email != null and uacUser.email != ''">
+                AND t.email like CONCAT('%', #{uacUser.email}, '%')
+            </if>
+            <if test="uacUser.userCode != null and uacUser.userCode != ''">
+                AND t.user_code like CONCAT('%', #{uacUser.userCode}, '%')
+            </if>
+            <if test="officeId != null and officeId != ''">
+                AND (o1.parent_ids like CONCAT('%,', #{officeId}, ',%') OR o1.id = #{officeId})
+            </if>
+        </if>
+    </select>
+
+
+    <select id="getResponsibleUserByOfficeId" resultType="com.example.gbdpuserac.model.UacUser"
+            resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM uac_user t
+        left join uac_user_office uo on uo.user_id = t.id
+        left join uac_office o on uo.office_id = o.id
+        WHERE t.del_flag = '0'
+        <if test="uacUser != null">
+            <if test="uacUser.loginName != null and uacUser.loginName != ''">
+                AND t.login_name like CONCAT('%', #{uacUser.loginName}, '%')
+            </if>
+            <if test="uacUser.name != null and uacUser.name != ''">
+                AND t.name like CONCAT('%', #{uacUser.name}, '%')
+            </if>
+            <if test="uacUser.phone != null and uacUser.phone != ''">
+                AND t.phone like CONCAT('%', #{uacUser.phone}, '%')
+            </if>
+            <if test="uacUser.email != null and uacUser.email != ''">
+                AND t.email like CONCAT('%', #{uacUser.email}, '%')
+            </if>
+            <if test="uacUser.userCode != null and uacUser.userCode != ''">
+                AND t.user_code like CONCAT('%', #{uacUser.userCode}, '%')
+            </if>
+        </if>
+        <if test="officeId != null and officeId != ''">
+            AND (o.parent_ids like CONCAT('%,', #{officeId}, ',%')
+            <if test="parentIds != null">
+                OR o.id IN
+                <foreach collection="parentIds" item="parentId" index="index" open="(" close=")" separator=",">
+                   #{parentId}
+                </foreach>
+            </if>
+                OR o.id = #{officeId}
+            )
+        </if>
+    </select>
+
+
+
+
+
+    <select id="selectCountDuplicate" resultType="Integer">
+        select
+        COUNT(*)
+        FROM uac_user t
+        <include refid="Base_Column_Joins"/>
+        WHERE
+        t.del_flag = '0'
+        <if test="term !=null and  term != ''">
+            AND (
+            <if test="loginName != null and loginName != ''">
+                t.login_name = #{loginName}
+            </if>
+            <if test="phone != null and phone != ''">
+                <if test="loginName != null and loginName != ''">
+                  OR
+                </if>
+                t.phone = #{phone}
+            </if>
+            <if test="email != null and email != ''">
+                <if test="(loginName != null and loginName != '') or (phone != null and phone != '')">
+                    OR
+                </if>
+                t.email = #{email}
+            </if>
+            )
+        </if>
+    </select>
+</mapper>
